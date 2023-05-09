@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MatrixInversion.Sample": {
+      "commandName": "Project",
+      "commandLineArgs": "--inverser=gje-parallel --size=1500 --runs-count=30 --proc-count=12 --strategy=random"
+    }
+  }
+}
