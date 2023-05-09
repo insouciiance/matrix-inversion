@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MatrixInversion.Library.Mathematics;
@@ -27,7 +28,7 @@ public class GJEParallelMatrixInverser : IMatrixInverser
 
         Matrix result = Matrix.Identity(matrix.Width);
 
-        Action[] tasks;
+        List<Action> tasks;
 
         for (int i = 0; i < matrix.Height; i++)
         {
@@ -55,48 +56,82 @@ public class GJEParallelMatrixInverser : IMatrixInverser
             NormalizeRow(matrix[i], coef);
             NormalizeRow(result[i], coef);
 
-            tasks = new Action[matrix.Height - i - 1];
+            int currentRow = i;
+            int offset = i + 1;
 
-            for (int ii = i + 1; ii < matrix.Height; ii++)
+            int rawRows = (matrix.Height - offset) / _maxDegreeOfParallelism;
+            int extra = (matrix.Height - offset) % _maxDegreeOfParallelism;
+
+            tasks = new();
+
+            for (int ii = 0; ii < _maxDegreeOfParallelism; ii++)
             {
-                float factor = matrix[ii, i];
+                int rows = ii < extra ? rawRows + 1 : rawRows;
+
+                float[][] slice = matrix[offset..(offset + rows)];
+                float[][] resultSlice = result[offset..(offset + rows)];
 
                 float[] matrixFrom = matrix[i];
-                float[] matrixTo = matrix[ii];
                 float[] resultFrom = result[i];
-                float[] resultTo = result[ii];
 
-                tasks[ii - i - 1] = () =>
+                tasks.Add(() =>
                 {
-                    SubtractRow(matrixFrom, matrixTo, factor);
-                    SubtractRow(resultFrom, resultTo, factor);
-                };
+                    for (int j = 0; j < rows; j++)
+                    {
+                        float factor = slice[j][currentRow];
+
+                        float[] matrixTo = slice[j];
+                        float[] resultTo = resultSlice[j];
+
+                        SubtractRow(matrixFrom, matrixTo, factor);
+                        SubtractRow(resultFrom, resultTo, factor);
+                    }
+                });
+
+                offset += rows;
             }
 
-            Parallel.Invoke(_parallelOptions, tasks);
+            Parallel.Invoke(_parallelOptions, tasks.ToArray());
         }
 
         for (int i = matrix.Height - 1; i >= 0; i--)
         {
-            tasks = new Action[i];
+            tasks = new();
 
-            for (int ii = i - 1; ii >= 0; ii--)
+            int currentRow = i;
+            int offset = 0;
+
+            int rawRows = i / _maxDegreeOfParallelism;
+            int extra = i % _maxDegreeOfParallelism;
+
+            for (int ii = 0; ii < _maxDegreeOfParallelism; ii++)
             {
-                float factor = matrix[ii, i];
+                int rows = ii < extra ? rawRows + 1 : rawRows;
+
+                float[][] slice = matrix[offset..(offset + rows)];
+                float[][] resultSlice = result[offset..(offset + rows)];
 
                 float[] matrixFrom = matrix[i];
-                float[] matrixTo = matrix[ii];
                 float[] resultFrom = result[i];
-                float[] resultTo = result[ii];
 
-                tasks[i - 1 - ii] = () =>
+                tasks.Add(() =>
                 {
-                    SubtractRow(matrixFrom, matrixTo, factor);
-                    SubtractRow(resultFrom, resultTo, factor);
-                };
+                    for (int j = 0; j < rows; j++)
+                    {
+                        float factor = slice[j][currentRow];
+
+                        float[] matrixTo = slice[j];
+                        float[] resultTo = resultSlice[j];
+
+                        SubtractRow(matrixFrom, matrixTo, factor);
+                        SubtractRow(resultFrom, resultTo, factor);
+                    }
+                });
+
+                offset += rows;
             }
 
-            Parallel.Invoke(_parallelOptions, tasks);
+            Parallel.Invoke(_parallelOptions, tasks.ToArray());
         }
 
         return result;

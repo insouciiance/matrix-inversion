@@ -50,11 +50,14 @@ public class InversionApp
             _ => throw new ArgumentOutOfRangeException(nameof(Options.Inverser))
         };
 
+        Matrix? syncResult = new GJEMatrixInverser().Invert(Matrix.Clone(matrix));
+
         BenchmarkOptions options = new()
         {
             Runs = _options.RunsCount,
             Matrix = matrix,
-            Inverser = inverser
+            Inverser = inverser,
+            AfterRun = m => MatrixHelper.AssertEqual(syncResult, m)
         };
 
         BenchmarkResult result = new Benchmark(options).Run();

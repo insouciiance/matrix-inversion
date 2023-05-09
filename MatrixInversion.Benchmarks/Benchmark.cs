@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using MatrixInversion.Library.Extensions;
 using MatrixInversion.Library.Logging;
 using MatrixInversion.Library.Mathematics;
@@ -37,10 +36,10 @@ public class Benchmark
             Matrix copy = Matrix.Clone(_options.Matrix);
 
             sw.Start();
-            Matrix next = _options.Inverser.Invert(copy);
+            Matrix current = _options.Inverser.Invert(copy);
             sw.Stop();
 
-            MatrixHelper.AssertEqual(result, next);
+            _options.AfterRun?.Invoke(current);
 
             Log.Default.Info($"Run {i + 1} done. Elapsed: {sw.ElapsedMilliseconds}ms");
 
