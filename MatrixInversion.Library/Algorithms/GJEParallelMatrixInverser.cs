@@ -43,7 +43,7 @@ public class GJEParallelMatrixInverser : IMatrixInverser
                         if (matrix[i, ii] != 0)
                         {
                             SwapRows(matrix[i], matrix[ii]);
-                            SwapRows(matrix[i], matrix[ii]);
+                            SwapRows(result[i], result[ii]);
                             return;
                         }
                     }

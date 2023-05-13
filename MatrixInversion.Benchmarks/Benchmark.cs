@@ -29,7 +29,7 @@ public class Benchmark
 
         Stopwatch sw = new();
 
-        for (int i = -5; i < _options.Runs; i++)
+        for (int i = 0; i < _options.Runs; i++)
         {
             Log.Default.Info($"Starting run {i + 1}");
 
@@ -43,8 +43,7 @@ public class Benchmark
 
             Log.Default.Info($"Run {i + 1} done. Elapsed: {sw.ElapsedMilliseconds}ms");
 
-            if (i >= 0)
-                results.Add(sw.ElapsedMilliseconds);
+            results.Add(sw.ElapsedMilliseconds);
         
             sw.Reset();
         }

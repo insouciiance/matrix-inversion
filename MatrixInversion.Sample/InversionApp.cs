@@ -79,7 +79,7 @@ public class InversionApp
         for (int i = 0; i < matrix.Height; i++)
         {
             for (int j = 0; j < matrix.Width; j++)
-                Log.Default.Write($"{matrix[j, i],-6}", LogSeverity.Info);
+                Log.Default.Write($"{double.Round(matrix[j, i], 4),-8}", LogSeverity.Info);
 
             Log.Default.Info("");
         }
